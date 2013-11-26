@@ -5,13 +5,8 @@ Load buffers easily and allow you to integrate the loading into any engine.
 Play sound sources with common game properties like gain, pan, etc
 It will also contain any audio utilities.
 
-Anything more complex can just use the Web Audio API
+Anything more complex can just use the Web Audio API. But this library should aid with the Web Audio API, it shouldn't be a take it or leave it kinda thing.
 
     IDEAS:
-Create sets or tracks which are sound sources that contain the same effects.
-
-Create a way to crossfade between two sets or tracks.
-
-Add 3D panning and a basic left/right panning.
-
 Have playSound be able to use other audio nodes.
+
