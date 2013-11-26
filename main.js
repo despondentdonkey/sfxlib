@@ -7,7 +7,7 @@ function onLoad() {
         var source = SFX.createSource(buffer);
 
         SFX.playSound(source, {
-            volume: 0.2,
+            gain: 0.1,
 
             onComplete: function() {
                 console.log("done");
@@ -18,9 +18,14 @@ function onLoad() {
 
 //Temp namespace so we can easily refactor later when we come up with a name.
 var SFX = {
+    master: {}, //Global or master effect nodes.
+
     createContext: function() {
         window.AudioContext = window.AudioContext||window.webkitAudioContext;
         SFX.context = new AudioContext();
+
+        SFX.master.gainNode = SFX.context.createGain();
+        SFX.master.gainNode.connect(SFX.context.destination);
     },
 
     loadSound: function(url, onLoad) {
@@ -53,23 +58,23 @@ var SFX = {
 
         var loop = false;
         var delay = 0;
-        var volume = 1.0;
+        var gain = 1.0;
 
         if (opt) {
             loop = opt.loop || loop;
             delay = opt.delay || delay;
-            volume = opt.volume || volume;
+            gain = opt.gain || gain;
         }
 
-        source.loop = loop || false;
-        gainNode.gain.value = volume;
+        source.loop = loop;
+        gainNode.gain.value = gain;
 
         //Connect the source to the gain node and connect the gain node to the destination.
-        //Source -> Gain -> Destination
+        //Source -> Gain -> Master Gain -> Destination
         source.connect(gainNode);
-        gainNode.connect(SFX.context.destination);
+        gainNode.connect(SFX.master.gainNode);
 
-        source.start(delay || 0);
+        source.start(delay);
 
         setTimeout(function() {
             if (opt && opt.onComplete) {
