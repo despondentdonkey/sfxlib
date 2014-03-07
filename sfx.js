@@ -58,11 +58,11 @@ var SFX = {
 
         source.start(delay);
 
-        setTimeout(function() {
+        source.onended = function() {
             if (opt && opt.onComplete) {
                 opt.onComplete();
             }
-        }, (source.buffer.duration + delay) * 1000);
+        };
     },
 
     stopSound: function(source, delay) {
