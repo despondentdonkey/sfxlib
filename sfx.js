@@ -35,7 +35,7 @@ var SFX = {
         return source;
     },
 
-    playSound: function(source, opt) {
+    playSource: function(source, opt) {
         var gainNode = SFX.context.createGain();
 
         var loop = false;
@@ -46,6 +46,7 @@ var SFX = {
             loop = opt.loop || loop;
             delay = opt.delay || delay;
             gain = opt.gain || gain;
+            source.onended = opt.onEnd;
         }
 
         source.loop = loop;
@@ -57,15 +58,16 @@ var SFX = {
         gainNode.connect(SFX.master.gainNode);
 
         source.start(delay);
-
-        source.onended = function() {
-            if (opt && opt.onComplete) {
-                opt.onComplete();
-            }
-        };
     },
 
-    stopSound: function(source, delay) {
+    //Creates a unique source from buffer, plays it and returns it.
+    playSound: function(buffer, opt) {
+        var source = SFX.createSource(buffer);
+        SFX.playSource(source, opt);
+        return source;
+    },
+
+    stopSource: function(source, delay) {
         source.stop(delay);
     }
 }

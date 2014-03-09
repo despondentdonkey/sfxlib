@@ -6,12 +6,15 @@ function onLoad() {
     SFX.loadSound('test.mp3', function(buffer) {
         var source = SFX.createSource(buffer);
 
-        SFX.playSound(source, {
+        SFX.playSource(source, {
             gain: 0.1,
+            loop: true,
 
-            onComplete: function() {
+            onEnd: function() {
                 console.log("done");
             }
         });
+
+        SFX.stopSource(source, 1);
     });
 }
