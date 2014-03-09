@@ -9,7 +9,11 @@ function onLoad() {
     var test2 = loader.add('tests/walking/walk.mp3');
 
     loader.load(function() {
-        var source = SFX.createSource(test2.buffer);
+        var source = SFX.createSource(test.buffer);
+
+        window.addEventListener('keydown', function() {
+            console.log(source);
+        });
 
         SFX.playSource(source, {
             gain: 1,
@@ -20,7 +24,7 @@ function onLoad() {
             }
         });
 
-        SFX.playSound(test.buffer,{gain:0.1});
+        SFX.playSound(test2.buffer,{gain:0.1});
 
         SFX.stopSource(source, 1);
     });

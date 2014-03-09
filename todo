@@ -10,3 +10,15 @@ Anything more complex can just use the Web Audio API. But this library should ai
     IDEAS:
 Have playSound be able to use other audio nodes.
 
+    OBJECT BASED DESIGN:
+var bufferFile;
+
+var sound = createSound(bufferFile.buffer, {
+    gain: 0.1,
+});
+
+sound.play(delay)
+sound.stop(delay)
+sound.playNew(delay, opt) - Duplicates the sound, plays it and returns it. opt can be used to override current options.
+sound.gain = 0.5;
+sound.loop = false;

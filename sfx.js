@@ -70,7 +70,13 @@ var SFX = {
     stopSource: function(source, delay) {
         source.stop(delay);
     }
-}
+};
+
+SFX.createSound = function(buffer, opt) {
+    return {
+        source: SFX.createSource(buffer),
+    }
+};
 
 //Used to load multiple sounds.
 SFX.createLoader = function() {
