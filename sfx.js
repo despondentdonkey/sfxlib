@@ -104,6 +104,12 @@ SFX.createSound = function(buffer, opt) {
             source.start(delay);
         },
 
+        playNew: function(delay, opt) {
+            var newSound = SFX.createSound(this.source.buffer, opt || this.opt);
+            newSound.play(delay);
+            return newSound;
+        },
+
         stop: function(delay) {
             source.stop(delay);
         },
