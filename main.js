@@ -11,21 +11,18 @@ function onLoad() {
     loader.load(function() {
         var source = SFX.createSource(test.buffer);
 
+        var sound = SFX.createSound(test.buffer, {
+            gain: 0.1,
+        });
+
         window.addEventListener('keydown', function() {
             console.log(source);
         });
 
-        SFX.playSource(source, {
-            gain: 1,
-            loop: true,
+        sound.play(0);
 
-            onEnd: function() {
-                console.log("done");
-            }
-        });
+        sound.stop(0.5);
 
         SFX.playSound(test2.buffer,{gain:0.1});
-
-        SFX.stopSource(source, 1);
     });
 }

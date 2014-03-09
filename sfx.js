@@ -73,8 +73,69 @@ var SFX = {
 };
 
 SFX.createSound = function(buffer, opt) {
+    var source = SFX.createSource(buffer);
+    var gainNode = SFX.context.createGain();
+
+    function setOptions(opt) {
+        var loop = false;
+        var gain = 1.0;
+
+        if (opt) {
+            loop = opt.loop || loop;
+            gain = opt.gain || gain;
+            source.onended = opt.onEnd;
+        }
+
+        source.loop = loop;
+        gainNode.gain.value = gain;
+    }
+    setOptions(opt);
+
+    //Connect the source to the gain node and connect the gain node to the destination.
+    //Source -> Gain -> Master Gain -> Destination
+    source.connect(gainNode);
+    gainNode.connect(SFX.master.gainNode);
+
     return {
-        source: SFX.createSource(buffer),
+        source: source,
+        opt: opt,
+
+        play: function(delay) {
+            source.start(delay);
+        },
+
+        stop: function(delay) {
+            source.stop(delay);
+        },
+
+        setLooping: function(loop) {
+            source.loop = loop;
+        },
+
+        setGain: function(gain) {
+            gainNode.gain.value = gain;
+        },
+
+        setOnEnd: function(onEnd) {
+            source.onended = onEnd;
+        },
+
+        setOptions: function(opt) {
+            this.opt = opt;
+            setOptions(opt);
+        },
+
+        isLooping: function() {
+            return source.loop;
+        },
+
+        getGain: function() {
+            return gainNode.gain.value;
+        },
+
+        getOptions: function() {
+            return this.opt;
+        },
     }
 };
 
