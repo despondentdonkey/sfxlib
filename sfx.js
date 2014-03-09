@@ -71,3 +71,42 @@ var SFX = {
         source.stop(delay);
     }
 }
+
+//Used to load multiple sounds.
+SFX.createLoader = function() {
+    var holders = [];
+    var loaded = 0;
+
+    return {
+        add: function(path) {
+            var holder = {path: path};
+            holders.push(holder);
+            return holder;
+        },
+
+        //Loads all the sound paths added and fills 'buffer' in the holder object. Specify a callback function to continue after the sounds have been loaded.
+        load: function(callback) {
+            var onLoad = this.onLoad;
+
+            for (var i=0; i<holders.length; i++) {
+                var holder = holders[i];
+                (function(holder) { //Requires an anonymous function since holder is used in another callback.
+                    SFX.loadSound(holder.path, function(buffer) {
+                        holder.buffer = buffer;
+
+                        loaded++;
+
+                        //Meant to be overidden. Gives you the ratio of sounds loaded.
+                        if (onLoad) {
+                            onLoad(loaded / holders.length);
+                        }
+
+                        if (loaded >= holders.length) {
+                            callback();
+                        }
+                    });
+                })(holder);
+            }
+        }
+    };
+};
