@@ -8,10 +8,10 @@ function onLoad() {
 
         SFX.loadSound('loop.ogg', function(buffer) {
             var loopSource = SFX.createSource(buffer);
-            SFX.playSound(introSource, {
+            SFX.playSource(introSource, {
                 gain: 0.1,
-                onComplete: function() {
-                    SFX.playSound(loopSource, {
+                onEnd: function() {
+                    SFX.playSource(loopSource, {
                         gain: 0.1,
                         loop: true
                     });
