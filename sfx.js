@@ -114,6 +114,32 @@ SFX.createSound = function(buffer, opt) {
             source.stop(delay);
         },
 
+        fade: function(type, rate, length, onComplete) {
+            var setGain = this.setGain;
+            var gainTarget = this.getGain();
+            var timer = 0;
+            var interval = setInterval(function() {
+                timer += rate;
+
+                var ratio = timer / (length * 1000);
+                if (type === 'out') {
+                    ratio = (1 - ratio);
+                }
+
+                setGain(ratio * gainTarget);
+            }, rate);
+
+            setGain(type === 'in' ? 0 : gainTarget);
+
+            setTimeout(function() {
+                clearInterval(interval);
+                setGain(type === 'in' ? gainTarget : 0);
+                if (onComplete) {
+                    onComplete();
+                }
+            }, length * 1000);
+        },
+
         setLooping: function(loop) {
             source.loop = loop;
         },
