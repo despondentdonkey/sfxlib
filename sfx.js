@@ -75,30 +75,46 @@ var SFX = {
 SFX.createSound = function(buffer, opt) {
     var source = SFX.createSource(buffer);
     var gainNode = SFX.context.createGain();
+    var panNode = SFX.context.createPanner();
 
-    function setOptions(opt) {
+    function setOptions(opt, reconnect) {
         var loop = false;
         var gain = 1.0;
 
         if (opt) {
-            loop = opt.loop || loop;
+            if (opt.loop !== undefined) {
+                loop = opt.loop;
+            }
             gain = opt.gain || gain;
             source.onended = opt.onEnd;
         }
 
         source.loop = loop;
         gainNode.gain.value = gain;
-    }
-    setOptions(opt);
 
-    //Connect the source to the gain node and connect the gain node to the destination.
-    //Source -> Gain -> Master Gain -> Destination
-    source.connect(gainNode);
-    gainNode.connect(SFX.master.gainNode);
+        if (reconnect) {
+            source.disconnect();
+            gainNode.disconnect();
+            panNode.disconnect();
+        }
+
+        //Connect the source to the gain node and connect the gain node to the destination.
+        //Source -> Gain -> Master Gain -> Destination
+        source.connect(gainNode);
+        if (opt.pan) {
+            gainNode.connect(panNode);
+            panNode.connect(SFX.master.gainNode);
+        } else {
+            gainNode.connect(SFX.master.gainNode);
+        }
+    }
+
+    setOptions(opt, false);
 
     return {
         source: source,
         opt: opt,
+        panNode: panNode,
 
         play: function(delay) {
             source.start(delay);
@@ -154,7 +170,7 @@ SFX.createSound = function(buffer, opt) {
 
         setOptions: function(opt) {
             this.opt = opt;
-            setOptions(opt);
+            setOptions(opt, true);
         },
 
         isLooping: function() {
