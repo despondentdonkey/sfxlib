@@ -45,6 +45,7 @@ SFX.Sound = function(buffer, opt) {
     var gainNode = SFX.context.createGain();
     var panNode = SFX.context.createPanner();
     var options = opt;
+    var playing = false;
 
     Object.defineProperty(this, 'source', {
         get: function() { return source; },
@@ -64,6 +65,10 @@ SFX.Sound = function(buffer, opt) {
 
     Object.defineProperty(this, 'panNode', {
         get: function() { return panNode; },
+    });
+
+    Object.defineProperty(this, 'playing', {
+        get: function() { return playing; },
     });
 
     Object.defineProperty(this, 'loop', {
@@ -93,7 +98,14 @@ SFX.Sound = function(buffer, opt) {
 
     Object.defineProperty(this, 'onEnd', {
         get: function() { return this.source.onended; },
-        set: function(val) { this.source.onended = val; },
+        set: function(val) {
+            this.source.onended = function() {
+                playing = false;
+                if (val) {
+                    val();
+                }
+            };
+        },
     });
 
     Object.defineProperty(this, 'options', {
@@ -109,6 +121,9 @@ SFX.Sound = function(buffer, opt) {
             var props = [ //Properties that can be set.
                 'gain', 'loop', 'loopStart', 'loopEnd', 'playbackRate', 'onEnd',
             ];
+
+            //Must be called so it can set the default for the source.onended function. Look at the Object.defineProperty for 'onEnd'.
+            sound.onEnd = undefined;
 
             for (var i in opt) {
                 if (i === props[props.indexOf(i)]) {
@@ -137,6 +152,7 @@ SFX.Sound = function(buffer, opt) {
     setOptions(this, this.options, false);
 
     this.play = function(delay, time) {
+        playing = true;
         this.source.start(delay || 0, time || 0);
     };
 
