@@ -50,6 +50,14 @@ SFX.Sound = function(buffer, opt) {
         get: function() { return source; },
     });
 
+    Object.defineProperty(this, 'buffer', {
+        get: function() { return this.source.buffer; },
+    });
+
+    Object.defineProperty(this, 'duration', {
+        get: function() { return this.buffer.duration; },
+    });
+
     Object.defineProperty(this, 'gainNode', {
         get: function() { return gainNode; },
     });
@@ -78,6 +86,11 @@ SFX.Sound = function(buffer, opt) {
         set: function(val) { this.gainNode.gain.value = val; },
     });
 
+    Object.defineProperty(this, 'playbackRate', {
+        get: function() { return this.source.playbackRate.value; },
+        set: function(val) { this.source.playbackRate.value = val; },
+    });
+
     Object.defineProperty(this, 'onEnd', {
         get: function() { return this.source.onended; },
         set: function(val) { this.source.onended = val; },
@@ -94,7 +107,7 @@ SFX.Sound = function(buffer, opt) {
     function setOptions(sound, opt, reconnect) {
         if (opt) {
             var props = [ //Properties that can be set.
-                'gain', 'loop', 'loopStart', 'loopEnd', 'onEnd',
+                'gain', 'loop', 'loopStart', 'loopEnd', 'playbackRate', 'onEnd',
             ];
 
             for (var i in opt) {
