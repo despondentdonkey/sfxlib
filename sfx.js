@@ -117,8 +117,8 @@ SFX.createSound = function(buffer, opt) {
         gainNode: gainNode,
         panNode: panNode,
 
-        play: function(delay) {
-            source.start(delay);
+        play: function(delay, time) {
+            source.start(delay || 0, time || 0);
         },
 
         playNew: function(delay, opt) {
