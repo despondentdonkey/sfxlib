@@ -14,6 +14,8 @@ function onLoad() {
         var speedValSpan = document.getElementById('speedVal');
         var index = 1;
 
+        var walkSound = SFX.createSound(buffer, {gain:0.1});
+
         canvas.width = srcImg.width/7;
         canvas.height = srcImg.height;
 
@@ -38,10 +40,7 @@ function onLoad() {
 
             //This is specific to each sprite sheet. On this particular sprite sheet the indices 2 and 5 look like they should give a walk sound.
             if (index === 2 || index === 5) {
-                var source = SFX.createSource(buffer);
-                SFX.playSource(source, {
-                    gain: 0.1,
-                });
+                walkSound.playNew()
             }
 
             speedValSpan.innerHTML = speedSlider.value;
