@@ -34,42 +34,6 @@ var SFX = {
         source.buffer = buffer;
         return source;
     },
-
-    playSource: function(source, opt) {
-        var gainNode = SFX.context.createGain();
-
-        var loop = false;
-        var delay = 0;
-        var gain = 1.0;
-
-        if (opt) {
-            loop = opt.loop || loop;
-            delay = opt.delay || delay;
-            gain = opt.gain || gain;
-            source.onended = opt.onEnd;
-        }
-
-        source.loop = loop;
-        gainNode.gain.value = gain;
-
-        //Connect the source to the gain node and connect the gain node to the destination.
-        //Source -> Gain -> Master Gain -> Destination
-        source.connect(gainNode);
-        gainNode.connect(SFX.master.gainNode);
-
-        source.start(delay);
-    },
-
-    //Creates a unique source from buffer, plays it and returns it.
-    playSound: function(buffer, opt) {
-        var source = SFX.createSource(buffer);
-        SFX.playSource(source, opt);
-        return source;
-    },
-
-    stopSource: function(source, delay) {
-        source.stop(delay);
-    }
 };
 
 SFX.createSound = function(buffer, opt) {
@@ -97,6 +61,16 @@ SFX.Sound = function(buffer, opt) {
     Object.defineProperty(this, 'loop', {
         get: function() { return this.source.loop; },
         set: function(val) { this.source.loop = val; },
+    });
+
+    Object.defineProperty(this, 'loopStart', {
+        get: function() { return this.source.loopStart; },
+        set: function(val) { this.source.loopStart = val; },
+    });
+
+    Object.defineProperty(this, 'loopEnd', {
+        get: function() { return this.source.loopEnd; },
+        set: function(val) { this.source.loopEnd = val; },
     });
 
     Object.defineProperty(this, 'gain', {
@@ -155,9 +129,9 @@ SFX.Sound = function(buffer, opt) {
         this.source.start(delay || 0, time || 0);
     };
 
-    this.playNew = function(delay, opt) {
-        var newSound = SFX.createSound(this.source.buffer, opt || opt);
-        newSound.play(delay);
+    this.playNew = function(delay, time, opt) {
+        var newSound = SFX.createSound(this.source.buffer, opt || this.options);
+        newSound.play(delay, time);
         return newSound;
     };
 
