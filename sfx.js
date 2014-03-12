@@ -80,40 +80,7 @@ SFX.Sound = function(buffer, opt) {
     var source = SFX.createSource(buffer);
     var gainNode = SFX.context.createGain();
     var panNode = SFX.context.createPanner();
-
-    function setOptions(opt, reconnect) {
-        var loop = false;
-        var gain = 1.0;
-
-        if (opt) {
-            if (opt.loop !== undefined) {
-                loop = opt.loop;
-            }
-            gain = opt.gain || gain;
-            source.onended = opt.onEnd;
-        }
-
-        source.loop = loop;
-        gainNode.gain.value = gain;
-
-        if (reconnect) {
-            source.disconnect();
-            gainNode.disconnect();
-            panNode.disconnect();
-        }
-
-        //Connect the _source to the gain node and connect the gain node to the destination.
-        //_source -> Gain -> Master Gain -> Destination
-        source.connect(gainNode);
-        if (opt && opt.pan) {
-            gainNode.connect(panNode);
-            panNode.connect(SFX.master.gainNode);
-        } else {
-            gainNode.connect(SFX.master.gainNode);
-        }
-    }
-
-    setOptions(opt, false);
+    var options = opt;
 
     Object.defineProperty(this, 'source', {
         get: function() { return source; },
@@ -142,6 +109,48 @@ SFX.Sound = function(buffer, opt) {
         set: function(val) { this.source.onended = val; },
     });
 
+    Object.defineProperty(this, 'options', {
+        get: function() { return options; },
+        set: function(val) {
+            options = val;
+            setOptions(this, options, true);
+        },
+    });
+
+    function setOptions(sound, opt, reconnect) {
+        var loop = false;
+        var gain = 1.0;
+
+        if (opt) {
+            if (opt.loop !== undefined) {
+                loop = opt.loop;
+            }
+            gain = opt.gain || gain;
+            sound.onEnd = opt.onEnd;
+        }
+
+        sound.loop = loop;
+        sound.gain = gain;
+
+        if (reconnect) {
+            sound.source.disconnect();
+            sound.gainNode.disconnect();
+            sound.panNode.disconnect();
+        }
+
+        //Connect the _source to the gain node and connect the gain node to the destination.
+        //_source -> Gain -> Master Gain -> Destination
+        sound.source.connect(sound.gainNode);
+        if (opt && opt.pan) {
+            sound.gainNode.connect(sound.panNode);
+            sound.panNode.connect(SFX.master.gainNode);
+        } else {
+            sound.gainNode.connect(SFX.master.gainNode);
+        }
+    }
+
+    setOptions(this, this.options, false);
+
     this.play = function(delay, time) {
         this.source.start(delay || 0, time || 0);
     };
@@ -157,8 +166,8 @@ SFX.Sound = function(buffer, opt) {
     };
 
     this.fade = function(type, rate, length, onComplete) {
-        var setGain = setGain;
-        var gainTarget = getGain();
+        var sound = this;
+        var gainTarget = this.gain;
         var timer = 0;
         var interval = setInterval(function() {
             timer += rate;
@@ -168,27 +177,18 @@ SFX.Sound = function(buffer, opt) {
                 ratio = (1 - ratio);
             }
 
-            setGain(ratio * gainTarget);
+            sound.gain = (ratio * gainTarget);
         }, rate);
 
-        setGain(type === 'in' ? 0 : gainTarget);
+        this.gain = (type === 'in' ? 0 : gainTarget);
 
         setTimeout(function() {
             clearInterval(interval);
-            setGain(type === 'in' ? gainTarget : 0);
+            sound.gain = (type === 'in' ? gainTarget : 0);
             if (onComplete) {
                 onComplete();
             }
         }, length * 1000);
-    };
-
-    this.setOptions = function(options) {
-        opt = options;
-        setOptions(opt, true);
-    };
-
-    this.getOptions = function() {
-        return opt;
     };
 };
 
