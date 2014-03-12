@@ -92,34 +92,32 @@ SFX.Sound = function(buffer, opt) {
     });
 
     function setOptions(sound, opt, reconnect) {
-        var loop = false;
-        var gain = 1.0;
-
         if (opt) {
-            if (opt.loop !== undefined) {
-                loop = opt.loop;
+            var props = [ //Properties that can be set.
+                'gain', 'loop', 'loopStart', 'loopEnd', 'onEnd',
+            ];
+
+            for (var i in opt) {
+                if (i === props[props.indexOf(i)]) {
+                    sound[i] = opt[i];
+                }
             }
-            gain = opt.gain || gain;
-            sound.onEnd = opt.onEnd;
-        }
 
-        sound.loop = loop;
-        sound.gain = gain;
+            if (reconnect) {
+                sound.source.disconnect();
+                sound.gainNode.disconnect();
+                sound.panNode.disconnect();
+            }
 
-        if (reconnect) {
-            sound.source.disconnect();
-            sound.gainNode.disconnect();
-            sound.panNode.disconnect();
-        }
-
-        //Connect the _source to the gain node and connect the gain node to the destination.
-        //_source -> Gain -> Master Gain -> Destination
-        sound.source.connect(sound.gainNode);
-        if (opt && opt.pan) {
-            sound.gainNode.connect(sound.panNode);
-            sound.panNode.connect(SFX.master.gainNode);
-        } else {
-            sound.gainNode.connect(SFX.master.gainNode);
+            //Connect the _source to the gain node and connect the gain node to the destination.
+            //_source -> Gain -> Master Gain -> Destination
+            sound.source.connect(sound.gainNode);
+            if (opt.pan) {
+                sound.gainNode.connect(sound.panNode);
+                sound.panNode.connect(SFX.master.gainNode);
+            } else {
+                sound.gainNode.connect(SFX.master.gainNode);
+            }
         }
     }
 
