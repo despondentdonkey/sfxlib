@@ -73,6 +73,10 @@ var SFX = {
 };
 
 SFX.createSound = function(buffer, opt) {
+    return new SFX.Sound(buffer, opt);
+};
+
+SFX.Sound = function(buffer, opt) {
     var source = SFX.createSource(buffer);
     var gainNode = SFX.context.createGain();
     var panNode = SFX.context.createPanner();
@@ -98,10 +102,10 @@ SFX.createSound = function(buffer, opt) {
             panNode.disconnect();
         }
 
-        //Connect the source to the gain node and connect the gain node to the destination.
-        //Source -> Gain -> Master Gain -> Destination
+        //Connect the _source to the gain node and connect the gain node to the destination.
+        //_source -> Gain -> Master Gain -> Destination
         source.connect(gainNode);
-        if (opt.pan) {
+        if (opt && opt.pan) {
             gainNode.connect(panNode);
             panNode.connect(SFX.master.gainNode);
         } else {
@@ -111,81 +115,81 @@ SFX.createSound = function(buffer, opt) {
 
     setOptions(opt, false);
 
-    return {
-        source: source,
-        opt: opt,
-        gainNode: gainNode,
-        panNode: panNode,
+    Object.defineProperty(this, 'source', {
+        get: function() { return source; },
+    });
 
-        play: function(delay, time) {
-            source.start(delay || 0, time || 0);
-        },
+    Object.defineProperty(this, 'gainNode', {
+        get: function() { return gainNode; },
+    });
 
-        playNew: function(delay, opt) {
-            var newSound = SFX.createSound(this.source.buffer, opt || this.opt);
-            newSound.play(delay);
-            return newSound;
-        },
+    Object.defineProperty(this, 'panNode', {
+        get: function() { return panNode; },
+    });
 
-        stop: function(delay) {
-            source.stop(delay);
-        },
+    Object.defineProperty(this, 'loop', {
+        get: function() { return this.source.loop; },
+        set: function(val) { this.source.loop = val; },
+    });
 
-        fade: function(type, rate, length, onComplete) {
-            var setGain = this.setGain;
-            var gainTarget = this.getGain();
-            var timer = 0;
-            var interval = setInterval(function() {
-                timer += rate;
+    Object.defineProperty(this, 'gain', {
+        get: function() { return this.gainNode.gain.value; },
+        set: function(val) { this.gainNode.gain.value = val; },
+    });
 
-                var ratio = timer / (length * 1000);
-                if (type === 'out') {
-                    ratio = (1 - ratio);
-                }
+    Object.defineProperty(this, 'onEnd', {
+        get: function() { return this.source.onended; },
+        set: function(val) { this.source.onended = val; },
+    });
 
-                setGain(ratio * gainTarget);
-            }, rate);
+    this.play = function(delay, time) {
+        this.source.start(delay || 0, time || 0);
+    };
 
-            setGain(type === 'in' ? 0 : gainTarget);
+    this.playNew = function(delay, opt) {
+        var newSound = SFX.createSound(this.source.buffer, opt || opt);
+        newSound.play(delay);
+        return newSound;
+    };
 
-            setTimeout(function() {
-                clearInterval(interval);
-                setGain(type === 'in' ? gainTarget : 0);
-                if (onComplete) {
-                    onComplete();
-                }
-            }, length * 1000);
-        },
+    this.stop = function(delay) {
+        this.source.stop(delay);
+    };
 
-        setLooping: function(loop) {
-            source.loop = loop;
-        },
+    this.fade = function(type, rate, length, onComplete) {
+        var setGain = setGain;
+        var gainTarget = getGain();
+        var timer = 0;
+        var interval = setInterval(function() {
+            timer += rate;
 
-        setGain: function(gain) {
-            gainNode.gain.value = gain;
-        },
+            var ratio = timer / (length * 1000);
+            if (type === 'out') {
+                ratio = (1 - ratio);
+            }
 
-        setOnEnd: function(onEnd) {
-            source.onended = onEnd;
-        },
+            setGain(ratio * gainTarget);
+        }, rate);
 
-        setOptions: function(opt) {
-            this.opt = opt;
-            setOptions(opt, true);
-        },
+        setGain(type === 'in' ? 0 : gainTarget);
 
-        isLooping: function() {
-            return source.loop;
-        },
+        setTimeout(function() {
+            clearInterval(interval);
+            setGain(type === 'in' ? gainTarget : 0);
+            if (onComplete) {
+                onComplete();
+            }
+        }, length * 1000);
+    };
 
-        getGain: function() {
-            return gainNode.gain.value;
-        },
+    this.setOptions = function(options) {
+        opt = options;
+        setOptions(opt, true);
+    };
 
-        getOptions: function() {
-            return this.opt;
-        },
-    }
+    this.getOptions = function() {
+        return opt;
+    };
 };
 
 //Used to load multiple sounds.
