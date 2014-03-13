@@ -174,6 +174,7 @@ SFX.Sound = function(buffer, opt) {
             timer += rate;
 
             var ratio = timer / (length * 1000);
+            ratio = Math.sin((Math.PI / 2) * ratio);
             if (type === 'out') {
                 ratio = (1 - ratio);
             }
