@@ -6,8 +6,26 @@ var SFX = {
         window.AudioContext = window.AudioContext||window.webkitAudioContext;
         SFX.context = new AudioContext();
 
+        SFX.master.nodes = [];
+
         SFX.master.gainNode = SFX.context.createGain();
-        SFX.master.gainNode.connect(SFX.context.destination);
+
+        SFX.pushNode(SFX.master.gainNode);
+        SFX.pushNode(SFX.context.destination);
+
+        SFX.connectNodes(SFX.master.nodes);
+    },
+
+    pushNode: function(node) {
+        SFX.master.nodes.push(node);
+    },
+
+    connectNodes: function(nodes) {
+        for (var i=0; i<nodes.length; ++i) {
+            if (i < nodes.length - 1) {
+                nodes[i].connect(nodes[i+1]);
+            }
+        }
     },
 
     loadSound: function(url, onLoad) {
@@ -142,9 +160,9 @@ SFX.Sound = function(buffer, opt) {
             sound.source.connect(sound.gainNode);
             if (opt.pan) {
                 sound.gainNode.connect(sound.panNode);
-                sound.panNode.connect(SFX.master.gainNode);
+                sound.panNode.connect(SFX.master.nodes[0]);
             } else {
-                sound.gainNode.connect(SFX.master.gainNode);
+                sound.gainNode.connect(SFX.master.nodes[0]);
             }
         }
     }
