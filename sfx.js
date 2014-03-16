@@ -6,18 +6,11 @@ var SFX = {
         window.AudioContext = window.AudioContext||window.webkitAudioContext;
         SFX.context = new AudioContext();
 
-        SFX.master.nodes = [];
-
         SFX.master.gainNode = SFX.context.createGain();
 
-        SFX.pushNode(SFX.master.gainNode);
-        SFX.pushNode(SFX.context.destination);
+        SFX.master.nodes = [SFX.master.gainNode, SFX.context.destination];
 
         SFX.connectNodes(SFX.master.nodes);
-    },
-
-    pushNode: function(node) {
-        SFX.master.nodes.push(node);
     },
 
     connectNodes: function(nodes) {
@@ -64,6 +57,7 @@ SFX.Sound = function(buffer, opt) {
     var panNode = SFX.context.createPanner();
     var options = opt;
     var playing = false;
+    var nodes = [];
 
     Object.defineProperty(this, 'source', {
         get: function() { return source; },
@@ -83,6 +77,10 @@ SFX.Sound = function(buffer, opt) {
 
     Object.defineProperty(this, 'panNode', {
         get: function() { return panNode; },
+    });
+
+    Object.defineProperty(this, 'nodes', {
+        get: function() { return nodes; },
     });
 
     Object.defineProperty(this, 'playing', {
@@ -130,11 +128,15 @@ SFX.Sound = function(buffer, opt) {
         get: function() { return options; },
         set: function(val) {
             options = val;
-            setOptions(this, options, true);
+            nodes = setOptions(this, options, true);
         },
     });
 
     function setOptions(sound, opt, reconnect) {
+        //List of nodes to connect.
+        //Source -> Gain -> (optional) pan -> First Master Node (Gain atm) -> ... -> Destination
+        var nodes = [sound.source, sound.gainNode];
+
         if (opt) {
             var props = [ //Properties that can be set.
                 'gain', 'loop', 'loopStart', 'loopEnd', 'playbackRate', 'onEnd',
@@ -155,19 +157,17 @@ SFX.Sound = function(buffer, opt) {
                 sound.panNode.disconnect();
             }
 
-            //Connect the _source to the gain node and connect the gain node to the destination.
-            //_source -> Gain -> Master Gain -> Destination
-            sound.source.connect(sound.gainNode);
             if (opt.pan) {
-                sound.gainNode.connect(sound.panNode);
-                sound.panNode.connect(SFX.master.nodes[0]);
-            } else {
-                sound.gainNode.connect(SFX.master.nodes[0]);
+                nodes.push(sound.panNode);
             }
         }
+
+        nodes.push(SFX.master.nodes[0]);
+        SFX.connectNodes(nodes);
+        return nodes;
     }
 
-    setOptions(this, this.options, false);
+    nodes = setOptions(this, this.options, false);
 
     this.play = function(delay, time) {
         playing = true;
